@@ -26,17 +26,16 @@ boolean ALARM_RAISED = false;
 // EVENT DEFINITIONS
 // ------------------------------
 
-// GENERAL
+// GENERAL (sub cause codes)
 #define OFF 0
 #define ON 1
-#define ERR 666
+#define ERR 9
 
 // OUT
 #define PROXIMITY_ALARM 0
 
 // IN
-#define GET_DISTANCE 10
-#define DEACTIVATE_ALARM 11
+#define GET_DISTANCE 5
 
 
 // ------------------------------
@@ -122,8 +121,11 @@ void check_distance() {
 }
 
 
-void send_message(int msg, int sub) {
-  Serial.println();
+void send_message(int main, int sub) {
+  char m, s;
+  m = char(main);
+  s = char(sub);
+  Serial.println(m + " " + s);
 }
 
 
