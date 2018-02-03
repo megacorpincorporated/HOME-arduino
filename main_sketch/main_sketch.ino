@@ -68,14 +68,11 @@ void check_input() {
 
 
 void incoming_command(char *cmd) {
-  Serial.println("Incoming command:");
-  Serial.println(cmd);
+  int main = cmd[0] - '0';
+  int sub = 9; // ERR
 
-  int main = atoi(&cmd[0]);
-  int sub = 0;
-
-  if (&cmd[2] > 0) {
-    sub = atoi(&cmd[2]);
+  if ((cmd[2] - '0') > -1) {
+    sub = cmd[2] - '0';
   }
   execute_command(&main, &sub);
 }
@@ -86,10 +83,36 @@ void execute_command(int *main, int *sub) {
     case PROXIMITY_ALARM:
       alarm_callback(*sub);
       break;
+    case GET_DISTANCE:
+      send_distance();
+      break;
     default:
-      Serial.println("ERROR >> command not identified!");
+      Serial.println(ERR);
       break;
   }
+}
+
+
+void send_distance() {
+  char m = GET_DISTANCE + '0';
+  char f = ' ';
+  char message[6]; // Including string termination
+  message[0] = m;
+  message[1] = f;
+
+  int dist = distance;
+  if (distance > 99) {
+    message[2] = (dist / 100) + '0';
+    message[3] = (dist / 10)  + '0';
+    message[4] = (dist % 10)  + '0';
+  } else if (distance > 9) {
+    message[2] = (dist / 10)  + '0';
+    message[3] = (dist % 10)  + '0';
+  } else {
+    message[2] = (dist % 10)  + '0';
+  }
+  Serial.println(message);
+  memset(&message[0], 0, sizeof(message));  // Not clearing the memory allocation causes strange lingering characters in the same memory address.
 }
 
 
@@ -98,15 +121,13 @@ void alarm_callback(int state) {
     case ON:
       ALARM_RAISED = true;
       digitalWrite(ledPin, HIGH);
-      Serial.println("Alarm is activated!");
       break;
     case OFF:
       ALARM_RAISED = false;
       digitalWrite(ledPin, LOW);
-      Serial.println("Alarm is deactivated!");
       break;
     default:
-      Serial.println("ERROR >> Could not read alarm sub cause!");
+      Serial.println(ERR);
       break;
   }
 }
@@ -122,10 +143,12 @@ void check_distance() {
 
 
 void send_message(int main, int sub) {
-  char m, s;
-  m = char(main);
-  s = char(sub);
-  Serial.println(m + " " + s);
+  char m, s, f;
+  m = main + '0';
+  s = sub + '0';
+  f = ' ';
+  char message[] = {m, f, s};
+  Serial.println(message);
 }
 
 
