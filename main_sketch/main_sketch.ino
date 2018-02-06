@@ -122,13 +122,13 @@ void send_distance() {
   int dist = parse_samples();
   if (dist > 99) {
     message[2] = (dist / 100) + '0';
-    message[3] = (dist / 10)  + '0';
-    message[4] = (dist % 10)  + '0';
+    message[3] = ((dist % 100) / 10) + '0';
+    message[4] = (dist % 10) + '0';
   } else if (dist > 9) {
-    message[2] = (dist / 10)  + '0';
-    message[3] = (dist % 10)  + '0';
+    message[2] = (dist / 10) + '0';
+    message[3] = (dist % 10) + '0';
   } else {
-    message[2] = (dist % 10)  + '0';
+    message[2] = (dist % 10) + '0';
   }
   Serial.println(message);
   memset(&message[0], 0, sizeof(message));  // Not clearing the memory allocation causes strange lingering characters in the same memory address.
@@ -180,6 +180,8 @@ void setup() {
   pinMode(distanceEchoPin, INPUT);
   pinMode(distanceTrigPin, OUTPUT);
 
+  memset(&buffer[0], 0, sizeof(buffer));
+  
   Timer1.initialize();
   Timer1.setPeriod(100000); // The timeout period is set in microseconds where 100 000 = 0.1 seconds
   Timer1.attachInterrupt( isr_read_distance );
