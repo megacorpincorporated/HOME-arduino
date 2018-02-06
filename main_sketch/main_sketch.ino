@@ -15,7 +15,8 @@
 // ------------------------------
 // GLOBS
 // ------------------------------
-volatile int distance = 0;
+volatile unsigned int pos = 0;
+volatile unsigned int samples[10];
 
 char buffer[10];
 
@@ -50,7 +51,15 @@ void isr_read_distance() {
   digitalWrite(distanceTrigPin, LOW);
   // Read
   int echo_timing = pulseIn(distanceEchoPin, HIGH);
-  distance = echo_timing / 58;
+  int distance = echo_timing / 58;
+  // Discard negative values as the read was distorted.
+  if (distance > 0) {
+    samples[pos] = distance;
+    pos++;
+  }
+  if (pos == 10) {
+    pos = 0;
+  }
 }
 
 
@@ -93,6 +102,16 @@ void execute_command(int *main, int *sub) {
 }
 
 
+int parse_samples() {
+  int total = 0;
+  for (int i = 0; i < 10; i++) {
+    total += samples[i];
+  }
+
+  return total / 10;
+}
+
+
 void send_distance() {
   char m = GET_DISTANCE + '0';
   char f = ' ';
@@ -100,12 +119,12 @@ void send_distance() {
   message[0] = m;
   message[1] = f;
 
-  int dist = distance;
-  if (distance > 99) {
+  int dist = parse_samples();
+  if (dist > 99) {
     message[2] = (dist / 100) + '0';
     message[3] = (dist / 10)  + '0';
     message[4] = (dist % 10)  + '0';
-  } else if (distance > 9) {
+  } else if (dist > 9) {
     message[2] = (dist / 10)  + '0';
     message[3] = (dist % 10)  + '0';
   } else {
@@ -134,9 +153,9 @@ void alarm_callback(int state) {
 
 
 void check_distance() {
-  if (distance < 5 && !ALARM_RAISED) {
+  if (parse_samples() < 5 && !ALARM_RAISED) {
     send_message(PROXIMITY_ALARM, ON);
-  } else if (distance > 5 && ALARM_RAISED) {
+  } else if (parse_samples() > 5 && ALARM_RAISED) {
     send_message(PROXIMITY_ALARM, OFF);
   }
 }
