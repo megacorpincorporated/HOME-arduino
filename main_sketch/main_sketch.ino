@@ -153,9 +153,9 @@ void alarm_callback(int state) {
 
 
 void check_distance() {
-  if (parse_samples() < 5 && !ALARM_RAISED) {
+  if (parse_samples() > 5 && !ALARM_RAISED) {
     send_message(PROXIMITY_ALARM, ON);
-  } else if (parse_samples() > 5 && ALARM_RAISED) {
+  } else if (parse_samples() < 5 && ALARM_RAISED) {
     send_message(PROXIMITY_ALARM, OFF);
   }
 }
