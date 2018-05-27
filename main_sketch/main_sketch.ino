@@ -18,7 +18,7 @@
 volatile unsigned int pos = 0;
 volatile unsigned int samples[10];
 
-char buffer[10];
+char buffer[50];
 
 boolean ALARM_RAISED = false;
 
@@ -155,9 +155,8 @@ void send_message(int main, int sub) {
   m = main + '0';
   s = sub + '0';
   f = ' ';
-  char message[] = {m, f, s};
+  char message[4] = {m, f, s}; // including string terminator!
   Serial.println(message);
-  memset(&message[0], 0, sizeof(message));
 }
 
 
@@ -166,11 +165,18 @@ void send_message(int main, int sub) {
 // ------------------------------
 void setup() {
   Serial.begin(9600);
+  while (!Serial) {} // Wait for leonardo
+  delay(600); // wait for serial initialisation
+
+  if (Serial.available()) {
+      Serial.readBytes(buffer, Serial.available()); // attempt to read any trash available
+  }
+
+  memset(&buffer[0], 0, sizeof(buffer));
+  
   pinMode(ledPin, OUTPUT);
   pinMode(distanceEchoPin, INPUT);
   pinMode(distanceTrigPin, OUTPUT);
-
-  memset(&buffer[0], 0, sizeof(buffer));
   
   Timer1.initialize();
   Timer1.setPeriod(100000); // The timeout period is set in microseconds where 100 000 = 0.1 seconds
