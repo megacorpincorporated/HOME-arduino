@@ -36,7 +36,7 @@ boolean ALARM_RAISED = false;
 #define PROXIMITY_ALARM 0
 
 // IN
-#define GET_DISTANCE 5
+#define GET_ALARM_STATUS 1
 
 
 // ------------------------------
@@ -92,8 +92,8 @@ void execute_command(int *main, int *sub) {
     case PROXIMITY_ALARM:
       alarm_callback(*sub);
       break;
-    case GET_DISTANCE:
-      send_distance();
+    case GET_ALARM_STATUS:
+      send_alarm_status();
       break;
     default:
       Serial.println(ERR);
@@ -112,26 +112,15 @@ int parse_samples() {
 }
 
 
-void send_distance() {
-  char m = GET_DISTANCE + '0';
-  char f = ' ';
-  char message[6]; // Including string termination
-  message[0] = m;
-  message[1] = f;
-
-  int dist = parse_samples();
-  if (dist > 99) {
-    message[2] = (dist / 100) + '0';
-    message[3] = ((dist % 100) / 10) + '0';
-    message[4] = (dist % 10) + '0';
-  } else if (dist > 9) {
-    message[2] = (dist / 10) + '0';
-    message[3] = (dist % 10) + '0';
+void send_alarm_status() {
+  
+  int alarm_status;
+  if (ALARM_RAISED) {
+    alarm_status = ON;
   } else {
-    message[2] = (dist % 10) + '0';
+    alarm_status = OFF;
   }
-  Serial.println(message);
-  memset(&message[0], 0, sizeof(message));  // Not clearing the memory allocation causes strange lingering characters in the same memory address.
+  send_message(GET_ALARM_STATUS, alarm_status);
 }
 
 
@@ -168,6 +157,7 @@ void send_message(int main, int sub) {
   f = ' ';
   char message[] = {m, f, s};
   Serial.println(message);
+  memset(&message[0], 0, sizeof(message));
 }
 
 
