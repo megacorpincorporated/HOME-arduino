@@ -188,7 +188,7 @@ void setup() {
 // Main loop
 // ------------------------------
 void loop() {
-  delay(1000);
+  delay(250);
   check_input();
   check_distance();
 }
